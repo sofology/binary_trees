@@ -2,10 +2,10 @@
 
 levelorder_queue_t *create_node(binary_tree_t *node);
 void free_queue(levelorder_queue_t *head);
-void pint_push(binary_tree_t *node, levelorder_queue_t *head,
-		levelorder_queue_t **tail, void (*func)(int));
+void push(binary_tree_t *node, levelorder_queue_t *head,
+		levelorder_queue_t **tail);
 void pop(levelorder_queue_t **head);
-void binary_tree_levelorder(const binary_tree_t *tree, void (*func)(int));
+int binary_tree_is_complete(const binary_tree_t *tree);
 
 /**
  * create_node - Creates a new levelorder_queue_t node.
@@ -45,43 +45,26 @@ void free_queue(levelorder_queue_t *head)
 }
 
 /**
- * pint_push - Runs a function on a given binary tree node and
- *             pushes its children into a levelorder_queue_t queue.
+ * push - Pushes a node to the back of a levelorder_queue_t queue.
  * @node: The binary tree node to print and push.
  * @head: A double pointer to the head of the queue.
  * @tail: A double pointer to the tail of the queue.
- * @func: A pointer to the function to call on @node.
  *
  * Description: Upon malloc failure, exits with a status code of 1.
  */
-void pint_push(binary_tree_t *node, levelorder_queue_t *head,
-		levelorder_queue_t **tail, void (*func)(int))
+void push(binary_tree_t *node, levelorder_queue_t *head,
+		levelorder_queue_t **tail)
 {
 	levelorder_queue_t *new;
 
-	func(node->n);
-	if (node->left != NULL)
+	new = create_node(node);
+	if (new == NULL)
 	{
-		new = create_node(node->left);
-		if (new == NULL)
-		{
-			free_queue(head);
-			exit(1);
-		}
-		(*tail)->next = new;
-		*tail = new;
+		free_queue(head);
+		exit(1);
 	}
-	if (node->right != NULL)
-	{
-		new = create_node(node->right);
-		if (new == NULL)
-		{
-			free_queue(head);
-			exit(1);
-		}
-		(*tail)->next = new;
-		*tail = new;
-	}
+	(*tail)->next = new;
+	*tail = new;
 }
 
 /**
@@ -98,25 +81,51 @@ void pop(levelorder_queue_t **head)
 }
 
 /**
- * binary_tree_levelorder - Traverses a binary tree using
- *                          level-order traversal.
+ * binary_tree_is_complete - Checks if a binary tree is complete.
  * @tree: A pointer to the root node of the tree to traverse.
- * @func: A pointer to a function to call for each node.
+ *
+ * Return: If the tree is NULL or not complete, 0.
+ *         Otherwise, 1.
+ *
+ * Description: Upon malloc failure, exits with a status code of 1.
  */
-void binary_tree_levelorder(const binary_tree_t *tree, void (*func)(int))
+int binary_tree_is_complete(const binary_tree_t *tree)
 {
 	levelorder_queue_t *head, *tail;
+	unsigned char flag = 0;
 
-	if (tree == NULL || func == NULL)
-		return;
+	if (tree == NULL)
+		return (0);
 
 	head = tail = create_node((binary_tree_t *)tree);
 	if (head == NULL)
-		return;
+		exit(1);
 
 	while (head != NULL)
 	{
-		pint_push(head->node, head, &tail, func);
+		if (head->node->left != NULL)
+		{
+			if (flag == 1)
+			{
+				free_queue(head);
+				return (0);
+			}
+			push(head->node->left, head, &tail);
+		}
+		else
+			flag = 1;
+		if (head->node->right != NULL)
+		{
+			if (flag == 1)
+			{
+				free_queue(head);
+				return (0);
+			}
+			push(head->node->right, head, &tail);
+		}
+		else
+			flag = 1;
 		pop(&head);
 	}
+	return (1);
 }
