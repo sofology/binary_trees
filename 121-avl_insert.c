@@ -1,5 +1,4 @@
 #include "binary_trees.h"
-#include "111-bst_insert.c"
 
 /**
  * bst_insert - inserts a value in a Binary Search Tree
